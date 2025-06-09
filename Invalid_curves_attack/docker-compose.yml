@@ -1,0 +1,54 @@
+version: '3.7'
+services:
+  server:
+    build:
+      context: .
+    ports:
+      - "2025:2025"
+    command: sage -python -u server.py
+    volumes:
+      - ./encrypted:/home/sage/encrypted
+    restart: always
+    networks:
+      - ecc_network
+
+  client:
+    build:
+      context: .
+    depends_on:
+      - server
+    command: sage -python -u client.py
+    volumes:
+      - ./test.jpg:/home/sage/test.jpg
+      - ./decrypted:/home/sage/decrypted
+    restart: always
+    networks:
+      - ecc_network
+
+  attacker:
+    build:
+      context: .
+    depends_on:
+      - server
+    command: sage -python -u attack.py
+    volumes:
+      - ./test.jpg:/home/sage/test.jpg
+      - ./decrypted:/home/sage/decrypted
+      - ./encrypted:/home/sage/encrypted  
+    restart: always
+    networks:
+      - ecc_network
+
+  find_curves:
+    build:
+      context: .
+    command: sage -python -u find_invalid_curve.py
+    volumes:
+      - ./invalid_curves.txt:/home/sage/invalid_curves.txt
+    networks:
+    - ecc_network
+
+
+networks:
+  ecc_network:
+    driver: bridge
