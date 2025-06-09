@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  server:
+    build:
+      context: ./server
+    container_name: bsgs_server
+    volumes:
+      - ./server:/app
+    working_dir: /app
+    command: ["python", "server.py"]
+    ports:
+      - "2025:2025"
+    restart: unless-stopped
+
+  attacker:
+    image: python:3.10
+    container_name: bsgs_attacker
+    depends_on:
+      - server
+    volumes:
+      - ./attack:/attack
+      - ./server:/data
+    working_dir: /attack
+    command: ["python", "attack.py"]
+    restart: unless-stopped
