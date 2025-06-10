@@ -1,4 +1,4 @@
-from ecdsa.ellipticcurve import CurveFp, Point
+from sage.all import *
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 from hashlib import sha3_512
@@ -14,34 +14,34 @@ with open("/data/params.txt") as f:
     Qx = int(f.readline())
     Qy = int(f.readline())
 
-curve = CurveFp(p, a, b)
-P = Point(curve, Px, Py)
-Q = Point(curve, Qx, Qy)
+curve = EllipticCurve(GF(p), [a, b])
+P = curve(Px, Py)
+Q = curve(Qx, Qy)
 
 def baby_step_giant_step(P, Q, order_bound):
     m = math.isqrt(order_bound) + 1
     table = {}
-    R = Point(curve, 0, 1)  # Điểm giả (chỉ để khởi tạo)
+    R = curve(0, 1)  # Điểm giả (chỉ để khởi tạo)
     # Baby steps
     for j in range(m):
         point = j * P
-        table[(point.x(), point.y())] = j
+        table[(point[0], point[1])] = j
 
     # Giant steps
     inv = -m * P
     Y = Q
     for i in range(m):
-        key = (Y.x(), Y.y())
+        key = (Y[0], Y[1])
         if key in table:
             return i * m + table[key]
         Y = Y + inv
     return None
 
 order_guess = P.order()
-print(f"[Client] Đoán order của P: {order_guess}")
+print(f"[Attacker] Đoán order của P: {order_guess}")
 
 d = baby_step_giant_step(P, Q, order_guess)
-print(f"[Client] Tìm được d: {d}")
+print(f"[Attacker] Tìm được d: {d}")
 
 # Giải mã
 with open("/data/cipher.enc", "rb") as f:

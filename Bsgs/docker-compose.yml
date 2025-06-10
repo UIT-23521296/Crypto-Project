@@ -8,13 +8,13 @@ services:
     volumes:
       - ./server:/app
     working_dir: /app
-    command: ["python", "server.py"]
+    command: ["sage", "-python", "-u", "server.py"]
     ports:
-      - "2025:2025"
+      - "2026:2025"
     restart: unless-stopped
 
   attacker:
-    image: python:3.10
+    image: sagemath/sagemath:latest
     container_name: bsgs_attacker
     depends_on:
       - server
@@ -22,5 +22,7 @@ services:
       - ./attack:/attack
       - ./server:/data
     working_dir: /attack
-    command: ["python", "attack.py"]
+    command: >
+      bash -c "sage -pip install pycrypto &&
+              sage -python -u attack.py"
     restart: unless-stopped
