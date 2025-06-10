@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip
 RUN sage -pip install pycryptodome matplotlib
 
 # Copy all necessary files
-COPY *.py .
+COPY *.py ./
 COPY test.jpg .
 # Set working directory
 WORKDIR /home/sage

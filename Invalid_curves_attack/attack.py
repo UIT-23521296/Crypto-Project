@@ -79,10 +79,9 @@ def decryptPoint(encrypted_data, key_str):
         
         # Chuyển bytes thành điểm
         point = pickle.loads(unpadded)
-        print(f"[DEBUG] Successfully decrypted with key: {key_str}")
+        print(f"Successfully decrypted with key: {key_str}")
         return point
     except Exception as e:
-        print(f"[DEBUG] Decryption failed with key '{key_str}': {str(e)}")
         return None
 
 results = []
@@ -136,10 +135,6 @@ print(f"Q_A from client: {Q_A_point}")
 K = k_B_sage * Q_A_point
 x, y = K.xy()
 shared_key = Point(Curve(p, a, b), x, y, validate=False)
-# Thêm log để debug
-print(f"[DEBUG] K.x: {K.x}")
-print(f"[DEBUG] K[0]: {K[0]}")
-print(f"[DEBUG] K.x == K[0]: {K.x == K[0]}")
 
 key_bytes = str(K[0] % p).encode()
 key = sha3_512(key_bytes).digest()[:16]

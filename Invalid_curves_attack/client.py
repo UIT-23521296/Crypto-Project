@@ -44,31 +44,25 @@ print(Q_B)
 
 # Compute shared secret K = k_A * Q_B
 K = k_A * Q_B
-print(f"[DEBUG] Computed shared key: {K}")
 
 # Decrypt data
 key_bytes = str(K.x % p).encode()
 key = sha3_512(key_bytes).digest()[:16]
-print(f"[DEBUG] Generated key: {key.hex()}")
 
 iv = ciphertext[:16]
 ct = ciphertext[16:]
 
 cipher = AES.new(key, AES.MODE_CBC, iv)
 decrypted = cipher.decrypt(ct)
-print(f"[DEBUG] Decrypted (before unpadding): {decrypted.hex()}")
 
 try:
     plaintext = unpad(decrypted, AES.block_size)
-    with open("decrypted_data.jpg", "wb") as fi:
+    with open("/home/sage/decrypted/decrypted_data.jpg", "wb") as fi:
         fi.write(plaintext)
-    print(f"Decrypted data: {plaintext.decode()}")
+    print(f"Decrypted data: plaintext")
 except ValueError as e:
-    print(f"[ERROR] Failed to unpad: {e}")
-    print(f"[DEBUG] Last bytes of decrypted data: {decrypted[-16:].hex()}")
-    # Try to decode anyway
     try:
-        print(f"Raw decrypted data: {decrypted.decode()}")
+        print(f"Raw decrypted data: decrypted")
     except:
         pass
 

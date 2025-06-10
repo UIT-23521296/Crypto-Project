@@ -116,14 +116,12 @@ try:
             # Encrypt data using shared_key
             shared_key = k_B * Q_A
             random_key = choice(system_para)
-            print(f"[DEBUG] Selected key from system_para: {random_key}")
             encrypted_shared_key = encryptPoint(shared_key, random_key)
             ciphertext = encrypt(shared_key, message)
             print(f"Cipher text: {sha3_512(ciphertext).hexdigest()[:16]}")
             try:
                 with open("/home/sage/encrypted/encrypted_test.enc", "wb") as f:
                     f.write(ciphertext)
-                print(f"[DEBUG] Encrypted file saved as encrypted_test.jpg")
             except Exception as e:
                 print(f"[ERROR] Failed to save encrypted file: {e}")
                 print(f"[DEBUG] Current working directory: {os.getcwd()}")
@@ -132,7 +130,6 @@ try:
             # Send ciphertext and Q_B
             response = pickle.dumps((ciphertext, Q_B, encrypted_shared_key))
             client.send(response)
-            print("[DEBUG] Sent response to client")
             
         except Exception as e:
             print(f"[ERROR] Error handling connection: {e}")
