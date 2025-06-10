@@ -17,8 +17,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: bsgs_attacker
-    depends_on:
-      - server
     volumes:
       - ./attack:/attack
       - ./server:/data
