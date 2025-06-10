@@ -1,20 +1,21 @@
-version: '3.7'
+version: '3.8'
 
 services:
   server:
     build:
       context: .
+      dockerfile: Dockerfile
     container_name: bsgs_server
     volumes:
       - ./server:/app
     working_dir: /app
     command: ["sage", "-python", "-u", "server.py"]
-    ports:
-      - "2026:2025"
-    restart: unless-stopped
+    restart: "no"
 
   attacker:
-    image: sagemath/sagemath:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: bsgs_attacker
     depends_on:
       - server
@@ -22,7 +23,5 @@ services:
       - ./attack:/attack
       - ./server:/data
     working_dir: /attack
-    command: >
-      bash -c "sage -pip install pycrypto &&
-              sage -python -u attack.py"
-    restart: unless-stopped
+    command: ["sage", "-python", "-u", "attack.py"]
+    restart: "no"

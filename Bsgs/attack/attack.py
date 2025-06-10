@@ -21,7 +21,6 @@ Q = curve(Qx, Qy)
 def baby_step_giant_step(P, Q, order_bound):
     m = math.isqrt(order_bound) + 1
     table = {}
-    R = curve(0, 1)  # Điểm giả (chỉ để khởi tạo)
     # Baby steps
     for j in range(m):
         point = j * P
