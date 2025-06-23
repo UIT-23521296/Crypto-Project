@@ -18,7 +18,7 @@ def check(prime):
 def encrypt(key, mess):
     key = sha3_512(str(key).encode()).digest()[:16]
     iv = secrets.token_bytes(16)
-    cipher = AES.new(key, AES.MODE_CBC, iv)
+    cipher = AES.new(key, AES.MODE_GCM, iv)
     ct = cipher.encrypt(pad(mess, AES.block_size))
     return iv + ct
 

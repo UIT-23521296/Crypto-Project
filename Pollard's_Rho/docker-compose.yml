@@ -1,21 +1,22 @@
 version: '3.7'
 
 services:
-  chall:
+  server:
     build:
       context: ./server
     ports:
       - "8888:8888"
     volumes:
       - ./attack:/output
-    restart: always
+    restart: "no"
 
   attacker:
     build:
       context: ./attack
     depends_on:
-      - chall
+      - server
     volumes:
       - ./attack:/output:cached
     networks:
       - default
+    restart: "no"

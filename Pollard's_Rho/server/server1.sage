@@ -18,7 +18,7 @@ def check(prime):
 def encrypt(key, mess):
     key = sha3_512(str(key).encode()).digest()[:16]
     iv = secrets.token_bytes(16)
-    cipher = AES.new(key, AES.MODE_CBC, iv)
+    cipher = AES.new(key, AES.MODE_GCM, iv)
     ct = cipher.encrypt(pad(mess, AES.block_size))
     return iv + ct
 
@@ -30,7 +30,8 @@ def genPara(p):
             return a, b
         
 while True:
-    p = int(input("Enter prime: "))
+    #p = int(input("Enter prime: "))
+    p = getPrime(36)
     if(check(p)):
         break
 
@@ -47,7 +48,6 @@ print(f'{b = }')
 print(f'{p = }')
 print('P =', P.xy())
 print('Q =', Q.xy())
-print(f'{secret = }')
 
 with open("/output/params.txt", "w") as f:
     f.write(f"{a}\n")

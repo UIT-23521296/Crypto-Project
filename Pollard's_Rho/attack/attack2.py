@@ -1,28 +1,10 @@
-import os
-import time
-
-def wait_for_file_update(filepath, last_mtime):
-    while True:
-        if os.path.exists(filepath):
-            mtime = os.path.getmtime(filepath)
-            if mtime > last_mtime:
-                return mtime
-        time.sleep(1)
-
-last_params_mtime = 0
-last_enc_mtime = 0
-
 from sage.all import *
 from Crypto.Util.number import *
-from fractions import Fraction
-from pwn import *
 from Crypto.Util.Padding import unpad
 from Crypto.Cipher import AES 
 from hashlib import sha3_512
 
 while True:
-    last_params_mtime = wait_for_file_update("/output/params.txt", last_params_mtime)
-    last_enc_mtime = wait_for_file_update("/output/encrypt_2.enc", last_enc_mtime)
 
     with open("/output/params.txt", "r") as f:
         lines = f.read().splitlines()
@@ -55,7 +37,7 @@ while True:
     key = sha3_512(str(x).encode()).digest()[:16]
     iv = ciphertext[:16]
     ciphertext = ciphertext[16:]
-    cipher = AES.new(key, AES.MODE_CBC, iv)
+    cipher = AES.new(key, AES.MODE_GCM, iv)
 
     with open("/output/recover_file_2.jpg", "wb") as write:
         write.write(unpad(cipher.decrypt(ciphertext), AES.block_size))
