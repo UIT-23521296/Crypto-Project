@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  attacker:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: sage -python mov_attack.py
