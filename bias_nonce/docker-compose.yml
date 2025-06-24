@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bias_server
+    volumes:
+      - ./server:/app
+    working_dir: /app
+    command: ["sage", "-python", "-u", "server.py"]
+    ports:
+      - "5000:5000"
+
+  attacker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bias_attacker
+    volumes:
+      - ./attack:/attack
+      - ./server:/data
+    working_dir: /attack
+    command: ["sage", "-python", "-u", "attack.py"]
+    restart: "no"
+    depends_on:
+      - server
+    network_mode: service:server

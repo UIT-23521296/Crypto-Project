@@ -1,0 +1,27 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pohlig_server
+    working_dir: /server
+    command: sage -python -u server.py
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./server:/server
+    restart: unless-stopped 
+
+  attacker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pohlig_attacker
+    working_dir: /attack
+    depends_on:
+      - server
+    command: sage -python -u attack.py
+    volumes:
+      - ./attack:/attack
+      - ./server:/server
+    restart: "no"
