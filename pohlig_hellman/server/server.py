@@ -1,55 +1,52 @@
-from flask import Flask, jsonify, request
-from ecc import Curve, Point
-from hashlib import sha256
+import sys
+sys.path.append("/server")
+from flask import Flask, jsonify
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
-import random
-import os
-import pickle
+from ecc import *
+from hashlib import sha3_512
+import secrets, random
 
 app = Flask(__name__)
 
-# ECC params
-p = 9739
-a = 497
-b = 1768
-curve = Curve(p, a, b)
-G = Point(curve, 1804, 5368, validate=True)
-n = 9739
+def aes_encrypt(key_int, plaintext_bytes):
+    key = sha3_512(str(key_int).encode()).digest()[:16]
+    iv = secrets.token_bytes(16)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    ciphertext = cipher.encrypt(pad(plaintext_bytes, AES.block_size))
+    return iv + ciphertext
 
-# Server private key
-d = random.randint(1, n-1)
-Q = d * G
-print(f"[+] Private key: {d}")
+p = 49157
+a = 2
+b = 3
+P = None
+while True:
+    x = random.randint(0, p - 1)
+    rhs = (x**3 + a*x + b) % p
+    for y in range(p):
+        if (y*y) % p == rhs:
+            if is_on_curve(x, y, a, b, p):
+                P = (x, y)
+                if point_order(P, a, p) is not None:
+                    break
+    if P: break
+d = 12345
+Q = point_mul(P, d, a, p)
+cipher = aes_encrypt(Q[0], b"Demo ECC message")
 
-# Encrypt message using shared secret
-with open("ms.txt", "rb") as f:
-    plaintext = f.read()
+@app.route("/exchange", methods=["POST"])
+def exchange():
+    return jsonify({
+        "p": p,
+        "a": a,
+        "b": b,
+        "Px": P[0],
+        "Py": P[1],
+        "Qx": Q[0],
+        "Qy": Q[1],
+        "cipher": cipher.hex()
+    })
 
-@app.route("/pubkey", methods=["GET"])
-def get_pubkey():
-    return jsonify({"x": Q.x, "y": Q.y})
-
-@app.route("/encrypt", methods=["POST"])
-def encrypt():
-    data = request.json
-    Cx, Cy = int(data['x']), int(data['y'])
-    C = Point(curve, Cx, Cy)
-    S = d * C
-    key = sha256(str(S.x).encode()).digest()[:16]
-    cipher = AES.new(key, AES.MODE_CBC, iv=b"\x00" * 16)
-    ct = cipher.encrypt(pad(plaintext, AES.block_size))
-
-    # Ghi ciphertext vào file
-    with open("cipher.enc", "wb") as f:
-        f.write(ct)
-
-    return jsonify({"cipher": ct.hex(), "Gx": G.x, "Gy": G.y})
-
-@app.route("/cipher", methods=["GET"])
-def get_cipher():
-    with open("cipher.enc", "rb") as f:
-        return f.read().hex()
-    
-if __name__ == '__main__':
+if __name__ == "__main__":
+    print("[SERVER] Running on port 5000...")
     app.run(host="0.0.0.0", port=5000)

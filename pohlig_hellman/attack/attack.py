@@ -1,46 +1,39 @@
 import sys
-sys.path.append("/server")  # đường dẫn trong container
-from ecc import Curve, Point
+sys.path.append("/server")
 import requests
-from ecc import Curve, Point
-from hashlib import sha256
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
-import json
+from hashlib import sha3_512
+from ecc import *
 
-# ECC params
-p = 9739
-a = 497
-b = 1768
-curve = Curve(p, a, b)
+def aes_decrypt(key_int, ciphertext_hex):
+    key = sha3_512(str(key_int).encode()).digest()[:16]
+    iv = bytes.fromhex(ciphertext_hex[:32])
+    ct = bytes.fromhex(ciphertext_hex[32:])
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return unpad(cipher.decrypt(ct), AES.block_size)
 
-# Step 1: Get Q = dG
-res = requests.get("http://server:5000/pubkey")
-Qx, Qy = res.json()["x"], res.json()["y"]
-Q = Point(curve, Qx, Qy)
+def discrete_log_pohlig(P, Q, a, p, n):
+    congs = []
+    for prime, exp in factor(n):
+        m = prime**exp
+        k = n // m
+        P1 = point_mul(P, k, a, p)
+        Q1 = point_mul(Q, k, a, p)
+        for d in range(m):
+            if point_mul(P1, d, a, p) == Q1:
+                congs.append((d, m))
+                break
+    return crt(congs)
 
-# Step 2: Brute d by solving dG = Q
-G = Point(curve, 1804, 5368, validate=True)
-d = 1
-while d < p:
-    if d * G == Q:
-        print(f"[+] Found private key d = {d}")
-        break
-    d += 1
+r = requests.post("http://pohlig_server:5000/exchange")
+data = r.json()
+p, a, b = data['p'], data['a'], data['b']
+P = (data['Px'], data['Py'])
+Q = (data['Qx'], data['Qy'])
+ciphertext = data['cipher']
 
-# Step 3: Send a random point C to encrypt
-C = 123 * G
-res = requests.post("http://server:5000/encrypt", json={"x": C.x, "y": C.y})
-data = res.json()
-
-# Step 4: Decrypt ciphertext
-res = requests.get("http://server:5000/cipher")
-cipher_hex = res.text
-print("[*] Ciphertext as seen from server's file (cipher.enc):")
-print(cipher_hex)
-
-S = d * C
-key = sha256(str(S.x).encode()).digest()[:16]
-cipher = AES.new(key, AES.MODE_CBC, iv=b"\x00" * 16)
-plaintext = unpad(cipher.decrypt(bytes.fromhex(data["cipher"])), AES.block_size)
-print("[+] Decrypted message:", plaintext.decode())
+n = point_order(P, a, p)
+d = discrete_log_pohlig(P, Q, a, p, n)
+print(f"Recovered d = {d}")
+print("Message:", aes_decrypt(Q[0], ciphertext).decode())
