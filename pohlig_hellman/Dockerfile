@@ -9,4 +9,4 @@ RUN sage -pip install flask pycryptodome requests
 COPY . .
 
 # Mặc định chạy server, có thể override khi chạy container
-CMD ["sage", "server.py"]
+CMD ["sage", "-i"]
