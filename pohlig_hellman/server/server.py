@@ -4,16 +4,14 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 import secrets
 import os
-import random
 from sage.all import *
 
-# --- ECC toy parameters ---
-p = 115792089210356248762697446949407573530086143415290314195533631308867097853951
-a = 115792089210356248762697446949407573530086143415290314195533631308867097853948
-b = 1235004111951061474045987936620314048836031279781573542995567934901240450608
+# --- ECC curve parameters ---
+p = 79801
+a = 15986
+b = 44683
 E = EllipticCurve(GF(p), [a, b])
-G = E(58739589111611962715835544993606157139975695246024583862682820878769866632269,
-    86857039837890738158800656283739100419083698574723918755107056633620633897772)
+G = E(16893, 4089)
 
 order = G.order()
 factors = factor(order)
@@ -22,7 +20,7 @@ factors = factor(order)
 d = randint(2, order - 1)
 Q = d * G
 
-# --- Encrypt the ms ---
+# --- Encrypt plaintext file using AES-CBC ---
 ms_file = "ms.txt"
 try:
     with open(ms_file, "rb") as f:
@@ -37,7 +35,7 @@ def aes_encrypt(key_int, plaintext_bytes):
     cipher = AES.new(key, AES.MODE_CBC, iv)
     return iv + cipher.encrypt(pad(plaintext_bytes, AES.block_size))
 
-cipher = aes_encrypt(Q.xy()[0], plaintext)
+cipher = aes_encrypt(d, plaintext)
 
 # --- Flask API setup ---
 app = Flask(__name__)
@@ -60,6 +58,7 @@ if __name__ == "__main__":
     print("[SERVER] Running on port 5000...")
     print(f"[+] Curve: y² = x³ + {a}x + {b} mod {p}")
     print(f"[+] Base point G: {G.xy()}")
+    print(f"[+] Public key Q: {Q.xy()}")
     print(f"[+] Order of G: {order}")
     print(f"[+] Order factors: {factors}")
     print(f"[+] Order bits: {order.bit_length()}")
