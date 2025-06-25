@@ -9,24 +9,24 @@ def gen_shared_secret(P, n):
     return S.xy()[0]
 
 # ==== Curve parameters ====
-p = 1973
+p = 1144435051
 a = 2709
 b = 2802
 E = EllipticCurve(GF(p), [a, b])
 
 # ==== Generator G ====
-gx = 1525
-gy = 27
+gx = 683692791
+gy = 11069484
 G = E((gx, gy))
 
 # ==== Alice's public key ====
-Px = 1784
-Py = 218
+Px = 476242891
+Py = 1067405154
 P = E((Px, Py))
 
-# ==== Bob's public key (cho việc test decrypt sau này) ====
-P2x = 445
-P2y = 723
+# ==== Bob's public key ====
+P2x = 653781595
+P2y = 361874836
 P2 = E((P2x, P2y))
 
 print("===== Curve Info =====")
